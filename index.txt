@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>别墅主卧室室内装饰施工图（平面布置图）</title>
+  <style>
+    /* A3 横向排版，旨在打印时符合 A3 规格（420mm × 297mm） */
+    @page {
+      size: A3 landscape;
+      margin: 0;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    svg {
+      /* SVG 尺寸按打印 DPI 转换，可按实际打印需求调整 */
+      width: 100%;
+      height: 100vh;
+      background-color: #fff;
+    }
+    .wall {
+      fill: none;
+      stroke: #000;
+      stroke-width: 200; /* 墙体厚度 200mm */
+    }
+    .door {
+      fill: none;
+      stroke: #000;
+      stroke-width: 20;
+    }
+    .window {
+      fill: none;
+      stroke: #000;
+      stroke-width: 10;
+    }
+    .furniture-bed {
+      fill: #e0e0e0;
+      stroke: #000;
+      stroke-width: 5;
+    }
+    .furniture-nightstand {
+      fill: #cfcfcf;
+      stroke: #000;
+      stroke-width: 3;
+    }
+    .furniture-chaise {
+      fill: #f5f5f5;
+      stroke: #000;
+      stroke-width: 5;
+    }
+    .furniture-desk {
+      fill: #dedede;
+      stroke: #000;
+      stroke-width: 5;
+    }
+    .dimension-line {
+      stroke: #000;
+      stroke-width: 5;
+      marker-start: url(#arrow);
+      marker-end: url(#arrow);
+    }
+    .dimension-text {
+      font-family: "Microsoft YaHei", "Arial";
+      font-size: 100px; /* 标注文字高度 100px，对应 mm 可自行微调 */
+      fill: #000;
+    }
+  </style>
+</head>
+<body>
+  <!-- 
+    本 SVG 的 viewBox 单位为“毫米”，坐标系原点 (0,0) 对应室内最外墙左上角（西北角）。
+    室内净尺寸：6000mm（X 方向）× 5000mm（Y 方向），墙厚 200mm。 
+    所有家具尺寸均按照实际毫米尺寸绘制，比例 1:1（用户打印时需按1:50 缩放或打印机自动缩放至 A3）。
+  -->
+  <svg viewBox="0 0 6000 5000" xmlns="http://www.w3.org/2000/svg">
+    <!-- 定义箭头标注 -->
+    <defs>
+      <marker
+        id="arrow"
+        markerWidth="30"
+        markerHeight="30"
+        refX="15"
+        refY="15"
+        orient="auto">
+        <path d="M0,0 L30,15 L0,30 z" fill="#000" />
+      </marker>
+    </defs>
+
+    <!-- 一、外墙轮廓（实心线，墙厚200mm） -->
+    <!-- 整体房间外墙轮廓：从 (0,0) 到 (6000,5000) -->
+    <rect
+      class="wall"
+      x="0"
+      y="0"
+      width="6000"
+      height="5000" />
+
+    <!-- 二、门窗（仅示意本例中未详细绘制如客厅大门，仅示意窗户位置） -->
+    <!-- 西墙正中飘窗：-->
+    <line
+      class="window"
+      x1="200"
+      y1="1400"
+      x2="200"
+      y2="1800" />
+    <line
+      class="window"
+      x1="0"
+      y1="1400"
+      x2="0"
+      y2="1800" />
+    <!-- 飘窗窗台内侧 -->
+    <line
+      class="window"
+      x1="0"
+      y1="1400"
+      x2="200"
+      y2="1400" />
+    <line
+      class="window"
+      x1="0"
+      y1="1800"
+      x2="200"
+      y2="1800" />
+
+    <!-- 东墙门洞（示意单扇门 900mm × 2100mm）-->
+    <path
+      class="door"
+      d="M 5800 200 L 5800 2300"
+      stroke-dasharray="10,10" />
+    <path
+      class="door"
+      d="M 5800 200 A 900 900 0 0 1 6699 1099"
+      fill="none" />
+
+    <!-- 三、家具布局 -->
+    <!-- 1. 双人床（1800×2000），床头靠北墙 -->
+    <g class="furniture-bed">
+      <!-- 床体主体 -->
+      <rect
+        x="2100"
+        y="200"
+        width="1800"
+        height="2000" />
+      <!-- 床头软包示意（加宽 50mm） -->
+      <rect
+        x="2100"
+        y="200"
+        width="1800"
+        height="150"
+        fill="#b0b0b0"
+        stroke="#000"
+        stroke-width="3" />
+      <!-- 枕头示意（两个 600×300） -->
+      <rect
+        x="2250"
+        y="300"
+        width="600"
+        height="300"
+        fill="#ffffff"
+        stroke="#000"
+        stroke-width="2" />
+      <rect
+        x="2850"
+        y="300"
+        width="600"
+        height="300"
+        fill="#ffffff"
+        stroke="#000"
+        stroke-width="2" />
+    </g>
+
+    <!-- 2. 床头柜（500×500）左右各一 -->
+    <rect
+      class="furniture-nightstand"
+      x="1600"
+      y="200"
+      width="500"
+      height="500" />
+    <rect
+      class="furniture-nightstand"
+      x="3900"
+      y="200"
+      width="500"
+      height="500" />
+
+    <!-- 3. 靠窗贵妃椅（2000×800），西墙靠窗放置 -->
+    <g class="furniture-chaise">
+      <rect
+        x="200"
+        y="2100"
+        width="2000"
+        height="800" />
+      <!-- 靠背示意：靠北侧 100mm 厚度 -->
+      <rect
+        x="200"
+        y="2100"
+        width="2000"
+        height="100"
+        fill="#dcdcdc"
+        stroke="#000"
+        stroke-width="3" />
+    </g>
+
+    <!-- 4. 写字桌（1500×600），东墙靠放 -->
+    <g class="furniture-desk">
+      <rect
+        x="4300"
+        y="200"
+        width="1500"
+        height="600" />
+      <!-- 桌下椅子示意（500×500） -->
+      <rect
+        x="4600"
+        y="750"
+        width="500"
+        height="500"
+        fill="#ffffff"
+        stroke="#000"
+        stroke-width="3" />
+    </g>
+
+    <!-- 四、尺寸标注（建筑标注方式） -->
+    <!-- 1. 横向尺寸 6000mm -->
+    <line
+      class="dimension-line"
+      x1="0"
+      y1="5200"
+      x2="6000"
+      y2="5200" />
+    <text
+      class="dimension-text"
+      x="3000"
+      y="5050"
+      text-anchor="middle">
+      6000 mm
+    </text>
+
+    <!-- 2. 纵向尺寸 5000mm -->
+    <line
+      class="dimension-line"
+      x1="6200"
+      y1="0"
+      x2="6200"
+      y2="5000" />
+    <text
+      class="dimension-text"
+      x="6250"
+      y="2500"
+      transform="rotate(90 6250,2500)"
+      text-anchor="middle">
+      5000 mm
+    </text>
+
+    <!-- 五、文字说明（图例、规范引用等简要注释） -->
+    <text
+      x="100"
+      y="4950"
+      font-family="Microsoft YaHei, Arial"
+      font-size="80px"
+      fill="#000">
+      图名：别墅主卧室室内装饰施工图（平面布置图），比例 1:50
+    </text>
+    <text
+      x="100"
+      y="5070"
+      font-family="Microsoft YaHei, Arial"
+      font-size="80px"
+      fill="#000">
+      设计单位：XXX  编制：XXX  审核：XXX  日期：2025年X月X日
+    </text>
+    <text
+      x="100"
+      y="5190"
+      font-family="Microsoft YaHei, Arial"
+      font-size="80px"
+      fill="#000">
+      符合规范：GBT 50001‑2017、GB 50352‑2019、GBT 50103‑2010、GB 50096‑2011、防火规范
+    </text>
+  </svg>
+</body>
+</html>

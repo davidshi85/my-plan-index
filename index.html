@@ -1,283 +1,632 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>别墅主卧室室内装饰施工图（平面布置图）</title>
-  <style>
-    /* A3 横向排版，旨在打印时符合 A3 规格（420mm × 297mm） */
-    @page {
-      size: A3 landscape;
-      margin: 0;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-    }
-    svg {
-      /* SVG 尺寸按打印 DPI 转换，可按实际打印需求调整 */
-      width: 100%;
-      height: 100vh;
-      background-color: #fff;
-    }
-    .wall {
-      fill: none;
-      stroke: #000;
-      stroke-width: 200; /* 墙体厚度 200mm */
-    }
-    .door {
-      fill: none;
-      stroke: #000;
-      stroke-width: 20;
-    }
-    .window {
-      fill: none;
-      stroke: #000;
-      stroke-width: 10;
-    }
-    .furniture-bed {
-      fill: #e0e0e0;
-      stroke: #000;
-      stroke-width: 5;
-    }
-    .furniture-nightstand {
-      fill: #cfcfcf;
-      stroke: #000;
-      stroke-width: 3;
-    }
-    .furniture-chaise {
-      fill: #f5f5f5;
-      stroke: #000;
-      stroke-width: 5;
-    }
-    .furniture-desk {
-      fill: #dedede;
-      stroke: #000;
-      stroke-width: 5;
-    }
-    .dimension-line {
-      stroke: #000;
-      stroke-width: 5;
-      marker-start: url(#arrow);
-      marker-end: url(#arrow);
-    }
-    .dimension-text {
-      font-family: "Microsoft YaHei", "Arial";
-      font-size: 100px; /* 标注文字高度 100px，对应 mm 可自行微调 */
-      fill: #000;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>“智绘筑”——基于AI辅助的建筑设计智能协同平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0a0a0a;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            transform: scale(0.95);
+            visibility: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+            visibility: visible;
+        }
+
+        #slide1 {
+            background: linear-gradient(rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.7)), url('https://placehold.co/1920x1080/003366/FFFFFF?text=未来建筑概念图') no-repeat center center/cover;
+        }
+
+        .background-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+        }
+
+        .slide-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+        }
+        
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background-color 0.3s;
+        }
+
+        .nav-arrow:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        #prev-btn {
+            left: 2rem;
+        }
+
+        #next-btn {
+            right: 2rem;
+        }
+        
+        #page-counter {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+
+        /* Animation for elements */
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .fade-in-down {
+            animation: fadeInDown 0.8s ease-out forwards;
+        }
+
+        .fade-in {
+            animation: fadeIn 1.2s ease-out forwards;
+        }
+
+        .stagger-children > * {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .active .stagger-children > *:nth-child(1) { animation-delay: 0.2s; }
+        .active .stagger-children > *:nth-child(2) { animation-delay: 0.4s; }
+        .active .stagger-children > *:nth-child(3) { animation-delay: 0.6s; }
+        .active .stagger-children > *:nth-child(4) { animation-delay: 0.8s; }
+
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Custom styles for specific slides */
+        .comparison-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        .comparison-table th, .comparison-table td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .comparison-table th {
+            background-color: rgba(0, 122, 255, 0.2);
+            font-weight: 500;
+        }
+
+        .comparison-table td:first-child {
+            text-align: left;
+            font-weight: 500;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tr:first-child th:first-child {
+             background-color: transparent;
+        }
+
+        .highlight-col {
+            background-color: rgba(46, 204, 113, 0.15);
+        }
+
+        .timeline {
+            position: relative;
+            width: 100%;
+            padding: 2rem 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-50%);
+        }
+        .timeline-item {
+            position: relative;
+            width: 50%;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+        }
+        .timeline-item:nth-child(odd) {
+            left: 0;
+            padding-right: 4rem;
+            text-align: right;
+        }
+        .timeline-item:nth-child(even) {
+            left: 50%;
+            padding-left: 4rem;
+            text-align: left;
+        }
+        .timeline-dot {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #007aff;
+            border: 3px solid #0a0a0a;
+            z-index: 1;
+        }
+        .timeline-item:nth-child(odd) .timeline-dot {
+            right: -8px;
+        }
+        .timeline-item:nth-child(even) .timeline-dot {
+            left: -8px;
+        }
+        .timeline-date {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #007aff;
+            margin-bottom: 0.5rem;
+        }
+
+    </style>
 </head>
 <body>
-  <!-- 
-    本 SVG 的 viewBox 单位为“毫米”，坐标系原点 (0,0) 对应室内最外墙左上角（西北角）。
-    室内净尺寸：6000mm（X 方向）× 5000mm（Y 方向），墙厚 200mm。 
-    所有家具尺寸均按照实际毫米尺寸绘制，比例 1:1（用户打印时需按1:50 缩放或打印机自动缩放至 A3）。
-  -->
-  <svg viewBox="0 0 6000 5000" xmlns="http://www.w3.org/2000/svg">
-    <!-- 定义箭头标注 -->
-    <defs>
-      <marker
-        id="arrow"
-        markerWidth="30"
-        markerHeight="30"
-        refX="15"
-        refY="15"
-        orient="auto">
-        <path d="M0,0 L30,15 L0,30 z" fill="#000" />
-      </marker>
-    </defs>
 
-    <!-- 一、外墙轮廓（实心线，墙厚200mm） -->
-    <!-- 整体房间外墙轮廓：从 (0,0) 到 (6000,5000) -->
-    <rect
-      class="wall"
-      x="0"
-      y="0"
-      width="6000"
-      height="5000" />
+    <!-- Slide 1: Title -->
+    <div id="slide1" class="slide active">
+        <div class="background-grid"></div>
+        <div class="slide-content text-center">
+            <h1 class="text-6xl md:text-7xl font-bold mb-4 tracking-wider fade-in-down">智绘筑</h1>
+            <p class="text-2xl md:text-3xl text-gray-300 fade-in-up">基于AI辅助的建筑设计智能协同平台</p>
+            <p class="text-lg text-gray-400 mt-12 fade-in">尹钊文 | 丁逸晗 | 洪中胜 | 林志浩 | 向晓慧</p>
+        </div>
+    </div>
 
-    <!-- 二、门窗（仅示意本例中未详细绘制如客厅大门，仅示意窗户位置） -->
-    <!-- 西墙正中飘窗：-->
-    <line
-      class="window"
-      x1="200"
-      y1="1400"
-      x2="200"
-      y2="1800" />
-    <line
-      class="window"
-      x1="0"
-      y1="1400"
-      x2="0"
-      y2="1800" />
-    <!-- 飘窗窗台内侧 -->
-    <line
-      class="window"
-      x1="0"
-      y1="1400"
-      x2="200"
-      y2="1400" />
-    <line
-      class="window"
-      x1="0"
-      y1="1800"
-      x2="200"
-      y2="1800" />
+    <!-- Slide 2: The Problem -->
+    <div id="slide2" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content text-center">
+            <h2 class="text-4xl font-bold mb-2 fade-in-down">传统建筑设计面临的困境</h2>
+            <p class="text-xl text-gray-400 mb-16 fade-in-down" style="animation-delay: 0.2s;">行业痛点亟待解决</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-6xl stagger-children">
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
+                    <i class="fas fa-clock text-4xl text-blue-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">设计周期长</h3>
+                    <p class="text-gray-400">人工设计15-30天，效率低下，无法满足快速建设需求。</p>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
+                    <i class="fas fa-coins text-4xl text-green-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">人力成本高</h3>
+                    <p class="text-gray-400">单套设计成本2000-5000元，严重挤压项目利润空间。</p>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
+                    <i class="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">合规性难保障</h3>
+                    <p class="text-gray-400">人工校验易出错，消防、日照等指标误差率超20%。</p>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
+                    <i class="fas fa-robot text-4xl text-purple-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">智能化渗透低</h3>
+                    <p class="text-gray-400">智能化工具应用不足5%，行业数字化转型缓慢。</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- 东墙门洞（示意单扇门 900mm × 2100mm）-->
-    <path
-      class="door"
-      d="M 5800 200 L 5800 2300"
-      stroke-dasharray="10,10" />
-    <path
-      class="door"
-      d="M 5800 200 A 900 900 0 0 1 6699 1099"
-      fill="none" />
+    <!-- Slide 3: Our Solution -->
+    <div id="slide3" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content text-center">
+            <h2 class="text-4xl font-bold mb-4 fade-in-down">我们的解决方案：智绘筑</h2>
+            <p class="text-xl text-gray-400 mb-16 fade-in-down" style="animation-delay: 0.2s;">AI赋能，重塑建筑设计流程</p>
+            <div class="flex items-center justify-center fade-in">
+                <div class="grid grid-cols-2 gap-8 text-right">
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-blue-400">草图智能识别</h3>
+                        <p class="text-gray-400">手绘草图一键解析，精准捕捉设计意图。</p>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-green-400">合规户型生成</h3>
+                        <p class="text-gray-400">10分钟生成合规方案，误差率低于2%。</p>
+                    </div>
+                </div>
+                <img src="https://placehold.co/200x200/FFFFFF/0a0a0a?text=智绘筑" alt="智绘筑 Logo" class="rounded-full w-48 h-48 mx-16 border-4 border-blue-500 shadow-lg">
+                <div class="grid grid-cols-2 gap-8 text-left">
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-purple-400">BIM模型联动</h3>
+                        <p class="text-gray-400">自动生成LOD200标准BIM模型，无缝衔接下游。</p>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-yellow-400">规范智能校验</h3>
+                        <p class="text-gray-400">内置300+地市规范，实时反馈，确保合规。</p>
+                    </div>
+                </div>
+            </div>
+             <div class="mt-16 text-2xl font-light text-gray-300 fade-in" style="animation-delay: 0.6s;">
+                <span class="text-green-400 font-semibold">效率提升7倍</span>  ·  <span class="text-blue-400 font-semibold">成本降低80%</span>  ·  <span class="text-yellow-400 font-semibold">合规率98%</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 4: Core Technology -->
+    <div id="slide4" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content">
+             <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">硬核技术实力</h2>
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl stagger-children">
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 text-center">
+                    <i class="fas fa-microchip text-4xl text-cyan-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">前沿AI算法</h3>
+                    <p class="text-gray-400">基于Stable Diffusion与ControlNet，结合自研模型，实现草图语义精准解析与高质量户型生成。</p>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 text-center">
+                    <i class="fas fa-database text-4xl text-lime-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">垂直场景数据</h3>
+                    <p class="text-gray-400">聚焦农房场景，内置100+县域建筑特征与300+地市规范，构建难以复制的数据壁垒。</p>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 text-center">
+                    <i class="fas fa-university text-4xl text-amber-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">高校科研背书</h3>
+                    <p class="text-gray-400">依托省部级重点实验室，算法研发成本降低50%，并享有学术成果转化政策优势。</p>
+                </div>
+             </div>
+        </div>
+    </div>
 
-    <!-- 三、家具布局 -->
-    <!-- 1. 双人床（1800×2000），床头靠北墙 -->
-    <g class="furniture-bed">
-      <!-- 床体主体 -->
-      <rect
-        x="2100"
-        y="200"
-        width="1800"
-        height="2000" />
-      <!-- 床头软包示意（加宽 50mm） -->
-      <rect
-        x="2100"
-        y="200"
-        width="1800"
-        height="150"
-        fill="#b0b0b0"
-        stroke="#000"
-        stroke-width="3" />
-      <!-- 枕头示意（两个 600×300） -->
-      <rect
-        x="2250"
-        y="300"
-        width="600"
-        height="300"
-        fill="#ffffff"
-        stroke="#000"
-        stroke-width="2" />
-      <rect
-        x="2850"
-        y="300"
-        width="600"
-        height="300"
-        fill="#ffffff"
-        stroke="#000"
-        stroke-width="2" />
-    </g>
+    <!-- Slide 5: Product & Services -->
+    <div id="slide5" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content">
+            <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">产品矩阵与服务</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center stagger-children">
+                <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
+                    <img src="https://placehold.co/600x400/1a1a1a/ffffff?text=系统UI界面" alt="农房户型自动生成系统" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">农房户型自动生成系统</h3>
+                        <p class="text-gray-400">核心产品，为县域设计院提供“AI生成+人工复核”混合设计模式。</p>
+                    </div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
+                    <img src="https://placehold.co/600x400/1a1a1a/ffffff?text=API接口示意" alt="BIM模型自动化生成模块" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">BIM模型自动化生成模块</h3>
+                        <p class="text-gray-400">增值服务，为BIM软件厂商提供嵌入式AI模块，提升其产品竞争力。</p>
+                    </div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
+                    <img src="https://placehold.co/600x400/1a1a1a/ffffff?text=数据分析仪表盘" alt="县域建筑数据服务" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">县域建筑数据服务</h3>
+                        <p class="text-gray-400">未来规划，为政府/企业提供农房数据分析与趋势预测服务。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 6: Market Analysis -->
+    <div id="slide6" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content">
+             <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">蓝海市场，机遇无限</h2>
+             <div class="flex flex-col md:flex-row items-center justify-center gap-12 w-full max-w-6xl stagger-children">
+                <div class="w-full md:w-1/3 text-center">
+                    <div class="text-6xl font-bold text-blue-400">40<span class="text-4xl">亿+</span></div>
+                    <p class="text-xl mt-2">县域农房设计年市场规模</p>
+                </div>
+                <div class="w-full md:w-1/3 text-center">
+                    <div class="text-6xl font-bold text-green-400"><span class="text-4xl">&lt;</span>5<span class="text-4xl">%</span></div>
+                    <p class="text-xl mt-2">当前智能化渗透率</p>
+                </div>
+                 <div class="w-full md:w-1/3 text-center">
+                    <i class="fas fa-file-alt text-6xl text-yellow-400 mb-2"></i>
+                    <p class="text-xl mt-2">国家“乡村振兴”战略<br>政策红利</p>
+                </div>
+             </div>
+             <p class="text-center text-gray-400 mt-16 text-lg fade-in" style="animation-delay: 0.8s;">
+                根据住建部预测，2026年市场规模将达2.8亿元，年复合增长率高达110%。
+             </p>
+        </div>
+    </div>
 
-    <!-- 2. 床头柜（500×500）左右各一 -->
-    <rect
-      class="furniture-nightstand"
-      x="1600"
-      y="200"
-      width="500"
-      height="500" />
-    <rect
-      class="furniture-nightstand"
-      x="3900"
-      y="200"
-      width="500"
-      height="500" />
+    <!-- Slide 7: Competitive Advantage -->
+    <div id="slide7" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content w-full max-w-5xl">
+            <h2 class="text-4xl font-bold mb-8 text-center fade-in-down">差异化竞争优势</h2>
+            <div class="fade-in" style="animation-delay: 0.2s;">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>维度</th>
+                            <th class="highlight-col">本项目 (智绘筑)</th>
+                            <th>国际通用工具 (如Autodesk)</th>
+                            <th>国内综合厂商 (如广联达)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>场景聚焦</td>
+                            <td class="highlight-col">深耕农房，含100+地域特征</td>
+                            <td>通用型，缺乏中国规范适配</td>
+                            <td>城市为主，县域适配弱</td>
+                        </tr>
+                        <tr>
+                            <td>规范适配</td>
+                            <td class="highlight-col">内置300+地市规范，实时校验</td>
+                            <td>无或仅支持国标</td>
+                            <td>国标+部分地市规范</td>
+                        </tr>
+                        <tr>
+                            <td>成本优势</td>
+                            <td class="highlight-col">技术授权费5万起</td>
+                            <td>定制开发费超50万</td>
+                            <td>软件捆绑销售，价格不透明</td>
+                        </tr>
+                        <tr>
+                            <td>学术背书</td>
+                            <td class="highlight-col">高校实验室+顶会论文支撑</td>
+                            <td>市场化团队，无科研背景</td>
+                            <td>市场化团队，合作研发</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-    <!-- 3. 靠窗贵妃椅（2000×800），西墙靠窗放置 -->
-    <g class="furniture-chaise">
-      <rect
-        x="200"
-        y="2100"
-        width="2000"
-        height="800" />
-      <!-- 靠背示意：靠北侧 100mm 厚度 -->
-      <rect
-        x="200"
-        y="2100"
-        width="2000"
-        height="100"
-        fill="#dcdcdc"
-        stroke="#000"
-        stroke-width="3" />
-    </g>
+    <!-- Slide 8: Business Model -->
+    <div id="slide8" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content">
+            <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">清晰的商业模式</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center stagger-children">
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
+                    <i class="fas fa-building text-4xl text-blue-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">To B: 企业客户</h3>
+                    <p class="text-gray-400">向县域设计院、中小房企、BIM软件厂商提供技术授权和SaaS订阅服务。</p>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
+                    <i class="fas fa-landmark text-4xl text-green-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">To G: 政府客户</h3>
+                    <p class="text-gray-400">参与乡村振兴、智能建造等试点项目采购，提供整体解决方案。</p>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
+                    <i class="fas fa-chart-line text-4xl text-purple-400 mb-4"></i>
+                    <h3 class="text-2xl font-semibold mb-2">Data Service: 数据服务</h3>
+                    <p class="text-gray-400">基于积累的行业数据，为政府和企业提供数据分析与决策支持服务。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 9: Financial Plan -->
+    <div id="slide9" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content">
+            <h2 class="text-4xl font-bold mb-12 text-center fade-in-down">融资计划与资金用途</h2>
+            <div class="flex flex-col md:flex-row items-center justify-around gap-12 w-full max-w-6xl">
+                <div class="text-center fade-in" style="animation-delay: 0.2s;">
+                    <h3 class="text-2xl font-semibold mb-4">天使轮融资需求</h3>
+                    <p class="text-7xl font-bold text-blue-400">35<span class="text-3xl ml-2">万</span></p>
+                    <p class="text-xl mt-4">出让 <span class="font-bold text-yellow-400">15%</span> 股权</p>
+                </div>
+                <div class="w-full md:w-1/2 fade-in" style="animation-delay: 0.4s;">
+                     <h3 class="text-2xl font-semibold mb-4 text-center">资金用途</h3>
+                     <div class="space-y-4">
+                        <div class="flex items-center">
+                            <span class="w-28">算法优化</span>
+                            <div class="w-full bg-gray-700 rounded-full h-6">
+                                <div class="bg-blue-500 h-6 rounded-full text-right pr-2" style="width: 40%;">40%</div>
+                            </div>
+                        </div>
+                         <div class="flex items-center">
+                            <span class="w-28">产品开发</span>
+                            <div class="w-full bg-gray-700 rounded-full h-6">
+                                <div class="bg-green-500 h-6 rounded-full text-right pr-2" style="width: 30%;">30%</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-28">试点运营</span>
+                            <div class="w-full bg-gray-700 rounded-full h-6">
+                                <div class="bg-yellow-500 h-6 rounded-full text-right pr-2" style="width: 20%;">20%</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-28">知识产权</span>
+                            <div class="w-full bg-gray-700 rounded-full h-6">
+                                <div class="bg-purple-500 h-6 rounded-full text-right pr-2" style="width: 10%;">10%</div>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 10: Future Roadmap -->
+    <div id="slide10" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content w-full max-w-5xl">
+            <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">发展蓝图与里程碑</h2>
+            <div class="timeline stagger-children">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2025</div>
+                    <h3 class="text-xl font-semibold">市场切入与验证</h3>
+                    <p class="text-gray-400">完成首家技术授权合作，建立3个县域试点，形成可复制的商业模式。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2026</div>
+                    <h3 class="text-xl font-semibold">规模化扩张</h3>
+                    <p class="text-gray-400">推出SaaS平台，覆盖10%县域设计院，实现千万级收入，达成盈利。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2027</div>
+                    <h3 class="text-xl font-semibold">产品线延伸</h3>
+                    <p class="text-gray-400">拓展至中小城市商业建筑设计，并探索东南亚等海外市场。</p>
+                </div>
+                <div class="timeline-item">
+                     <div class="timeline-dot"></div>
+                     <div class="timeline-date">2028+</div>
+                     <h3 class="text-xl font-semibold">生态领导者</h3>
+                     <p class="text-gray-400">成为县域及中小城市建筑设计智能化的标准制定者与领导品牌。</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- 4. 写字桌（1500×600），东墙靠放 -->
-    <g class="furniture-desk">
-      <rect
-        x="4300"
-        y="200"
-        width="1500"
-        height="600" />
-      <!-- 桌下椅子示意（500×500） -->
-      <rect
-        x="4600"
-        y="750"
-        width="500"
-        height="500"
-        fill="#ffffff"
-        stroke="#000"
-        stroke-width="3" />
-    </g>
+    <!-- Slide 11: Thank You -->
+    <div id="slide11" class="slide">
+        <div class="background-grid"></div>
+        <div class="slide-content text-center">
+            <h2 class="text-5xl md:text-6xl font-bold mb-4 tracking-wider fade-in-down">智绘筑</h2>
+            <p class="text-2xl md:text-3xl text-gray-300 mb-12 fade-in">赋能建筑未来</p>
+            <p class="text-4xl text-gray-200 fade-in-up" style="animation-delay: 0.4s;">感谢聆听</p>
+            <p class="text-2xl text-gray-400 mt-4 fade-in-up" style="animation-delay: 0.6s;">Q & A</p>
+        </div>
+    </div>
 
-    <!-- 四、尺寸标注（建筑标注方式） -->
-    <!-- 1. 横向尺寸 6000mm -->
-    <line
-      class="dimension-line"
-      x1="0"
-      y1="5200"
-      x2="6000"
-      y2="5200" />
-    <text
-      class="dimension-text"
-      x="3000"
-      y="5050"
-      text-anchor="middle">
-      6000 mm
-    </text>
 
-    <!-- 2. 纵向尺寸 5000mm -->
-    <line
-      class="dimension-line"
-      x1="6200"
-      y1="0"
-      x2="6200"
-      y2="5000" />
-    <text
-      class="dimension-text"
-      x="6250"
-      y="2500"
-      transform="rotate(90 6250,2500)"
-      text-anchor="middle">
-      5000 mm
-    </text>
+    <!-- Navigation -->
+    <button id="prev-btn" class="nav-arrow"><i class="fas fa-arrow-left"></i></button>
+    <button id="next-btn" class="nav-arrow"><i class="fas fa-arrow-right"></i></button>
+    <div id="page-counter">1 / 11</div>
 
-    <!-- 五、文字说明（图例、规范引用等简要注释） -->
-    <text
-      x="100"
-      y="4950"
-      font-family="Microsoft YaHei, Arial"
-      font-size="80px"
-      fill="#000">
-      图名：别墅主卧室室内装饰施工图（平面布置图），比例 1:50
-    </text>
-    <text
-      x="100"
-      y="5070"
-      font-family="Microsoft YaHei, Arial"
-      font-size="80px"
-      fill="#000">
-      设计单位：XXX  编制：XXX  审核：XXX  日期：2025年X月X日
-    </text>
-    <text
-      x="100"
-      y="5190"
-      font-family="Microsoft YaHei, Arial"
-      font-size="80px"
-      fill="#000">
-      符合规范：GBT 50001‑2017、GB 50352‑2019、GBT 50103‑2010、GB 50096‑2011、防火规范
-    </text>
-  </svg>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const pageCounter = document.getElementById('page-counter');
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                if (i === index) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+            pageCounter.textContent = `${index + 1} / ${totalSlides}`;
+            // Handle nav button visibility
+            prevBtn.style.display = index === 0 ? 'none' : 'block';
+            nextBtn.style.display = index === totalSlides - 1 ? 'none' : 'block';
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Initial setup
+        showSlide(currentSlide);
+    </script>
+
 </body>
 </html>

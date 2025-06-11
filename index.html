@@ -1,285 +1,263 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>时空矩阵转换器 | Excel to PDF</title>
-    
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts for sci-fi look -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>时空矩阵转换器 | Excel to PDF</title>
+   
+   <!-- Tailwind CSS for styling -->
+   <script src="https://cdn.tailwindcss.com"></script>
+   
+   <!-- Google Fonts for sci-fi look -->
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
 
-    <!-- Core libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    
-    <!-- FIX: Load a pre-converted Unicode font that supports Chinese characters for jsPDF -->
-    <!-- This script defines the font and makes it available to jsPDF -->
-    <script src="https://raw.githack.com/sphilee/jsPDF-CustomFonts-support/master/dist/arial-unicode-ms-normal.js"></script>
+   <!-- Core libraries -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+   
+   <!-- Load a Unicode font that supports Chinese characters for jsPDF -->
+   <script src="https://raw.githack.com/sphilee/jsPDF-CustomFonts-support/master/dist/arial-unicode-ms-normal.js"></script>
 
-    <style>
-        /* Custom styles for the sci-fi theme */
-        body {
-            font-family: 'Noto Sans SC', 'Orbitron', sans-serif;
-            background-color: #0a0c1d;
-            color: #e0e0e0;
-            background-image:
-                radial-gradient(circle at 1px 1px, rgba(200, 200, 255, 0.1) 1px, transparent 0),
-                radial-gradient(circle at 15px 15px, rgba(200, 200, 255, 0.05) 1px, transparent 0);
-            background-size: 30px 30px;
-        }
-
-        .title-font {
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .container-glow {
-            box-shadow: 0 0 15px rgba(0, 200, 255, 0.2), 0 0 30px rgba(0, 200, 255, 0.1), inset 0 0 10px rgba(0, 200, 255, 0.1);
-            border: 1px solid rgba(0, 225, 255, 0.3);
-        }
-
-        .btn-glow {
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(0, 225, 255, 0.5), 0 0 20px rgba(0, 225, 255, 0.3);
-        }
-
-        .btn-glow:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(0, 225, 255, 0.8), 0 0 30px rgba(0, 225, 255, 0.5);
-        }
-        
-        .btn-glow:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-            box-shadow: none;
-        }
-
-        .file-drop-area {
-            border: 2px dashed rgba(0, 225, 255, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .file-drop-area.dragover {
-            border-color: rgba(0, 225, 255, 1);
-            background-color: rgba(0, 225, 255, 0.05);
-        }
-        
-        .loader {
-            border-top-color: #00e1ff;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
+   <style>
+       /* Custom styles for the sci-fi theme */
+       body {
+           font-family: 'Noto Sans SC', 'Orbitron', sans-serif;
+           background-color: #0a0c1d;
+           color: #e0e0e0;
+           background-image:
+               radial-gradient(circle at 1px 1px, rgba(200, 200, 255, 0.1) 1px, transparent 0),
+               radial-gradient(circle at 15px 15px, rgba(200, 200, 255, 0.05) 1px, transparent 0);
+           background-size: 30px 30px;
+       }
+       .title-font { font-family: 'Orbitron', sans-serif; }
+       .container-glow {
+           box-shadow: 0 0 15px rgba(0, 200, 255, 0.2), 0 0 30px rgba(0, 200, 255, 0.1), inset 0 0 10px rgba(0, 200, 255, 0.1);
+           border: 1px solid rgba(0, 225, 255, 0.3);
+       }
+       .btn-glow {
+           transition: all 0.3s ease;
+           box-shadow: 0 0 10px rgba(0, 225, 255, 0.5), 0 0 20px rgba(0, 225, 255, 0.3);
+       }
+       .btn-glow:hover:not(:disabled) {
+           transform: translateY(-2px);
+           box-shadow: 0 0 15px rgba(0, 225, 255, 0.8), 0 0 30px rgba(0, 225, 255, 0.5);
+       }
+       .btn-glow:disabled { cursor: not-allowed; opacity: 0.5; box-shadow: none; }
+       .file-drop-area { border: 2px dashed rgba(0, 225, 255, 0.4); transition: all 0.3s ease; }
+       .file-drop-area.dragover { border-color: rgba(0, 225, 255, 1); background-color: rgba(0, 225, 255, 0.05); }
+       .loader { border-top-color: #00e1ff; animation: spin 1s linear infinite; }
+       @keyframes spin { to { transform: rotate(360deg); } }
+   </style>
 </head>
 
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div id="app" class="w-full max-w-2xl mx-auto">
-        <div class="bg-slate-900/50 backdrop-blur-sm rounded-xl p-6 md:p-8 container-glow">
-            <!-- Header -->
-            <div class="text-center mb-6">
-                <h1 class="text-3xl md:text-4xl font-bold text-cyan-300 title-font tracking-widest">时空矩阵转换器</h1>
-                <p class="text-cyan-500 mt-2 text-sm">Excel to PDF | 单行单页模式</p>
-            </div>
+   <div id="app" class="w-full max-w-2xl mx-auto">
+       <div class="bg-slate-900/50 backdrop-blur-sm rounded-xl p-6 md:p-8 container-glow">
+           <!-- Header -->
+           <div class="text-center mb-6">
+               <h1 class="text-3xl md:text-4xl font-bold text-cyan-300 title-font tracking-widest">时空矩阵转换器</h1>
+               <p class="text-cyan-500 mt-2 text-sm">Excel to PDF | 单行单页模式</p>
+           </div>
 
-            <!-- File Upload Area -->
-            <div id="file-drop-area" class="file-drop-area rounded-lg p-8 text-center cursor-pointer mb-6">
-                <input type="file" id="file-input" class="hidden" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                <div class="flex flex-col items-center">
-                    <svg class="w-12 h-12 text-cyan-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h10a4 4 0 014 4v5a4 4 0 01-4 4H7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m-3-3h6"></path></svg>
-                    <p class="text-lg">拖拽 <span class="text-cyan-300 font-semibold">.xlsx</span> 文件至此</p>
-                    <p class="text-sm text-gray-400 mt-1">或</p>
-                    <p class="mt-2 px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-md text-sm border border-cyan-500/50">点击选择文件</p>
-                </div>
-                <p id="file-name" class="mt-4 text-green-400 font-mono"></p>
-            </div>
+           <!-- File Upload Area -->
+           <div id="file-drop-area" class="file-drop-area rounded-lg p-8 text-center cursor-pointer mb-6">
+               <input type="file" id="file-input" class="hidden" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+               <div class="flex flex-col items-center">
+                   <svg class="w-12 h-12 text-cyan-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h10a4 4 0 014 4v5a4 4 0 01-4 4H7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m-3-3h6"></path></svg>
+                   <p class="text-lg">拖拽 <span class="text-cyan-300 font-semibold">.xlsx</span> 文件至此</p>
+                   <p class="text-sm text-gray-400 mt-1">或</p>
+                   <p class="mt-2 px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-md text-sm border border-cyan-500/50">点击选择文件</p>
+               </div>
+               <p id="file-name" class="mt-4 text-green-400 font-mono"></p>
+           </div>
 
-            <!-- Control Button -->
-            <div class="text-center mb-6">
-                <button id="convert-btn" class="w-full md:w-1/2 bg-cyan-500 text-gray-900 font-bold py-3 px-6 rounded-lg btn-glow title-font text-lg disabled:bg-gray-600" disabled>
-                    <span id="btn-text">开始转换</span>
-                    <div id="loader" class="loader w-6 h-6 border-4 border-gray-900/20 rounded-full hidden mx-auto"></div>
-                </button>
-            </div>
+           <!-- Control Button -->
+           <div class="text-center mb-6">
+               <button id="convert-btn" class="w-full md:w-1/2 bg-cyan-500 text-gray-900 font-bold py-3 px-6 rounded-lg btn-glow title-font text-lg disabled:bg-gray-600" disabled>
+                   <span id="btn-text">开始转换</span>
+                   <div id="loader" class="loader w-6 h-6 border-4 border-gray-900/20 rounded-full hidden mx-auto"></div>
+               </button>
+           </div>
 
-            <!-- Status Message -->
-            <div id="status-message" class="text-center text-yellow-400 h-5 font-mono text-sm"></div>
-        </div>
-        
-        <footer class="text-center mt-6 text-xs text-gray-500">
-            <p>本地处理，文件不会上传至服务器</p>
-            <p>&copy; 2025 Gemini Industries</p>
-        </footer>
-    </div>
+           <!-- Status Message -->
+           <div id="status-message" class="text-center text-yellow-400 h-5 font-mono text-sm"></div>
+       </div>
+       
+       <footer class="text-center mt-6 text-xs text-gray-500">
+           <p>本地处理，文件不会上传至服务器</p>
+           <p>© 2025 Gemini Industries</p>
+       </footer>
+   </div>
 
-    <script>
-        // JS Logic starts here
-        const { jsPDF } = window.jspdf;
+   <script>
+       const { jsPDF } = window.jspdf;
 
-        const fileDropArea = document.getElementById('file-drop-area');
-        const fileInput = document.getElementById('file-input');
-        const fileNameDisplay = document.getElementById('file-name');
-        const convertBtn = document.getElementById('convert-btn');
-        const btnText = document.getElementById('btn-text');
-        const loader = document.getElementById('loader');
-        const statusMessage = document.getElementById('status-message');
+       const fileDropArea = document.getElementById('file-drop-area');
+       const fileInput = document.getElementById('file-input');
+       const fileNameDisplay = document.getElementById('file-name');
+       const convertBtn = document.getElementById('convert-btn');
+       const btnText = document.getElementById('btn-text');
+       const loader = document.getElementById('loader');
+       const statusMessage = document.getElementById('status-message');
 
-        let excelFile = null;
-        
-        fileDropArea.addEventListener('click', () => fileInput.click());
+       let excelFile = null;
+       
+       fileDropArea.addEventListener('click', () => fileInput.click());
+       fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+       
+       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+           fileDropArea.addEventListener(eventName, preventDefaults, false);
+       });
 
-        fileInput.addEventListener('change', (e) => {
-            handleFile(e.target.files[0]);
-        });
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            fileDropArea.addEventListener(eventName, preventDefaults, false);
-        });
+       function preventDefaults(e) {
+           e.preventDefault();
+           e.stopPropagation();
+       }
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+       fileDropArea.addEventListener('dragenter', () => fileDropArea.classList.add('dragover'));
+       fileDropArea.addEventListener('dragleave', () => fileDropArea.classList.remove('dragover'));
+       fileDropArea.addEventListener('drop', (e) => {
+           fileDropArea.classList.remove('dragover');
+           handleFile(e.dataTransfer.files[0]);
+       });
+       
+       function handleFile(file) {
+           if (file && (file.name.endsWith('.xlsx'))) {
+               excelFile = file;
+               fileNameDisplay.textContent = `已选择: ${file.name}`;
+               convertBtn.disabled = false;
+               statusMessage.textContent = '准备就绪。';
+           } else {
+               excelFile = null;
+               fileNameDisplay.textContent = '';
+               convertBtn.disabled = true;
+               statusMessage.textContent = '错误：请选择一个有效的 .xlsx 文件。';
+           }
+       }
+       
+       convertBtn.addEventListener('click', () => {
+           if (!excelFile) {
+               statusMessage.textContent = '请先选择一个文件。';
+               return;
+           }
 
-        fileDropArea.addEventListener('dragenter', () => fileDropArea.classList.add('dragover'), false);
-        fileDropArea.addEventListener('dragleave', () => fileDropArea.classList.remove('dragover'), false);
-        fileDropArea.addEventListener('drop', (e) => {
-            fileDropArea.classList.remove('dragover');
-            handleFile(e.dataTransfer.files[0]);
-        }, false);
-        
-        function handleFile(file) {
-            if (file && (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.name.endsWith('.xlsx'))) {
-                excelFile = file;
-                fileNameDisplay.textContent = `已选择文件: ${file.name}`;
-                convertBtn.disabled = false;
-                statusMessage.textContent = '准备就绪。';
-            } else {
-                excelFile = null;
-                fileNameDisplay.textContent = '';
-                convertBtn.disabled = true;
-                statusMessage.textContent = '错误：请选择一个有效的 .xlsx 文件。';
-            }
-        }
-        
-        convertBtn.addEventListener('click', async () => {
-            if (!excelFile) {
-                statusMessage.textContent = '请先选择一个文件。';
-                return;
-            }
+           setLoading(true, '正在读取Excel...');
 
-            setLoading(true, '正在读取Excel...');
+           const reader = new FileReader();
+           reader.onload = async (e) => {
+               try {
+                   const data = new Uint8Array(e.target.result);
+                   const workbook = XLSX.read(data, { type: 'array' });
+                   const sheetName = workbook.SheetNames[0];
+                   const worksheet = workbook.Sheets[sheetName];
+                   const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                   
+                   // --- MAJOR FIX: Intelligently find header and body ---
+                   let headerIndex = -1;
+                   // Find the first row with at least 2 non-empty cells, consider it the header.
+                   for (let i = 0; i < jsonData.length; i++) {
+                       const row = jsonData[i];
+                       if (Array.isArray(row) && row.filter(cell => cell != null && String(cell).trim() !== '').length > 1) {
+                           headerIndex = i;
+                           break;
+                       }
+                   }
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    if (jsonData.length < 2) {
-                        throw new Error('Excel文件为空或只有标题行。');
-                    }
+                   if (headerIndex === -1) {
+                       throw new Error('无法找到有效的表头。请确保表格至少有一行包含数据。');
+                   }
+                   
+                   const header = jsonData[headerIndex].map(cell => String(cell ?? ''));
+                   // Filter out empty rows after the header
+                   const body = jsonData.slice(headerIndex + 1).filter(row => Array.isArray(row) && row.some(cell => cell != null && String(cell).trim() !== ''));
 
-                    const header = jsonData[0].map(cell => String(cell ?? ''));
-                    const body = jsonData.slice(1).map(row => row.map(cell => String(cell ?? '')));
+                   if (body.length === 0) {
+                       throw new Error('在表头后未找到有效的数据行。');
+                   }
+                   // --- END OF FIX ---
 
-                    setLoading(true, '正在生成PDF...');
-                    await generatePdf(header, body, excelFile.name.replace(/\.xlsx$/i, ''));
-                    
-                } catch (error) {
-                    console.error('Conversion failed:', error);
-                    statusMessage.textContent = `转换失败: ${error.message}`;
-                    setLoading(false);
-                }
-            };
-            
-            reader.onerror = (error) => {
-                 console.error('File reading failed:', error);
-                 statusMessage.textContent = '读取文件失败。';
-                 setLoading(false);
-            };
-
-            reader.readAsArrayBuffer(excelFile);
-        });
-
-        async function generatePdf(header, body, outputFileName) {
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'pt',
-                format: 'a4'
-            });
-
-            // FIX: Set the font to the loaded unicode font. 
-            // The font 'arial-unicode-ms' is now defined by the external script we added.
-            const fontName = 'arial-unicode-ms';
-            doc.setFont(fontName, 'normal');
-            
-            body.forEach((row, index) => {
-                if (index > 0) {
-                    doc.addPage();
-                }
-                
-                statusMessage.textContent = `正在处理 ${index + 1} / ${body.length} 行...`;
-                
-                doc.autoTable({
-                    head: [header],
-                    body: [row],
-                    styles: {
-                        font: fontName, // Apply the unicode font to the table
-                        fontStyle: 'normal',
-                    },
-                    headStyles: {
-                        fillColor: [10, 12, 29],
-                        textColor: [0, 225, 255]
-                    },
-                    bodyStyles: {
-                        fillColor: [23, 37, 84],
-                        textColor: [224, 224, 224]
-                    },
-                    alternateRowStyles: {
-                        fillColor: [28, 43, 98]
-                    },
-                    didDrawPage: (data) => {
-                        doc.setFontSize(9);
-                        doc.text(`第 ${doc.internal.getNumberOfPages()} 页`, data.settings.margin.left, doc.internal.pageSize.getHeight() - 10);
-                    }
-                });
-            });
-
-            setLoading(true, '准备下载...');
-            doc.save(`${outputFileName}.pdf`);
-
-            setTimeout(() => {
+                   setLoading(true, '正在生成PDF...');
+                   await generatePdf(header, body, excelFile.name.replace(/\.xlsx$/i, ''));
+                   
+               } catch (error) {
+                   console.error('Conversion failed:', error);
+                   statusMessage.textContent = `转换失败: ${error.message}`;
+                   setLoading(false);
+               }
+           };
+           
+           reader.onerror = (error) => {
+                console.error('File reading failed:', error);
+                statusMessage.textContent = '读取文件失败。';
                 setLoading(false);
-                statusMessage.textContent = '转换完成！已触发下载。';
-            }, 1000);
-        }
+           };
 
-        function setLoading(isLoading, message = '') {
-            if (isLoading) {
-                convertBtn.disabled = true;
-                btnText.classList.add('hidden');
-                loader.classList.remove('hidden');
-                statusMessage.textContent = message;
-            } else {
-                convertBtn.disabled = false;
-                btnText.classList.remove('hidden');
-                loader.classList.add('hidden');
-            }
-        }
-    </script>
+           reader.readAsArrayBuffer(excelFile);
+       });
+
+       async function generatePdf(header, body, outputFileName) {
+           const doc = new jsPDF({
+               orientation: 'landscape',
+               unit: 'pt',
+               format: 'a4'
+           });
+
+           const fontName = 'arial-unicode-ms';
+           doc.setFont(fontName, 'normal');
+           
+           body.forEach((row, index) => {
+               if (index > 0) {
+                   doc.addPage();
+               }
+               
+               statusMessage.textContent = `正在处理 ${index + 1} / ${body.length} 行...`;
+               
+               doc.autoTable({
+                   head: [header],
+                   body: [row],
+                   styles: {
+                       font: fontName,
+                       fontStyle: 'normal',
+                   },
+                   headStyles: {
+                       fillColor: [10, 12, 29],
+                       textColor: [0, 225, 255]
+                   },
+                   bodyStyles: {
+                       fillColor: [23, 37, 84],
+                       textColor: [224, 224, 224]
+                   },
+                   alternateRowStyles: {
+                       fillColor: [28, 43, 98]
+                   },
+                   didDrawPage: (data) => {
+                       doc.setFontSize(9);
+                       doc.text(`第 ${doc.internal.getNumberOfPages()} 页`, data.settings.margin.left, doc.internal.pageSize.getHeight() - 10);
+                   }
+               });
+           });
+
+           setLoading(true, '准备下载...');
+           doc.save(`${outputFileName}.pdf`);
+
+           setTimeout(() => {
+               setLoading(false);
+               statusMessage.textContent = '转换完成！已触发下载。';
+           }, 1000);
+       }
+
+       function setLoading(isLoading, message = '') {
+           convertBtn.disabled = isLoading;
+           btnText.classList.toggle('hidden', isLoading);
+           loader.classList.toggle('hidden', !isLoading);
+           if (message) {
+               statusMessage.textContent = message;
+           }
+       }
+   </script>
 </body>
 </html>

@@ -3,630 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>“智绘筑”——基于AI辅助的建筑设计智能协同平台</title>
+    <title>时空矩阵转换器 | Excel to PDF</title>
+    
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts for sci-fi look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
+
+    <!-- Core libraries for Excel parsing and PDF generation -->
+    <!-- SheetJS (xlsx.js) for reading Excel files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF for creating PDF documents -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF-AutoTable plugin for creating tables in PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
     <style>
+        /* Custom styles for the sci-fi theme */
         body {
-            font-family: 'Noto Sans SC', sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #0a0a0a;
-        }
-
-        .slide {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #ffffff;
-            opacity: 0;
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-            transform: scale(0.95);
-            visibility: hidden;
-        }
-
-        .slide.active {
-            opacity: 1;
-            transform: scale(1);
-            visibility: visible;
-        }
-
-        #slide1 {
-            background: linear-gradient(rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.7)), url('https://placehold.co/1920x1080/003366/FFFFFF?text=未来建筑概念图') no-repeat center center/cover;
-        }
-
-        .background-grid {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            font-family: 'Noto Sans SC', 'Orbitron', sans-serif;
+            background-color: #0a0c1d;
+            color: #e0e0e0;
             background-image:
-                linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: 0;
+                radial-gradient(circle at 1px 1px, rgba(200, 200, 255, 0.1) 1px, transparent 0),
+                radial-gradient(circle at 15px 15px, rgba(200, 200, 255, 0.05) 1px, transparent 0);
+            background-size: 30px 30px;
         }
 
-        .slide-content {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 1200px;
-            padding: 2rem;
+        .title-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .container-glow {
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.2), 0 0 30px rgba(0, 200, 255, 0.1), inset 0 0 10px rgba(0, 200, 255, 0.1);
+            border: 1px solid rgba(0, 225, 255, 0.3);
+        }
+
+        .btn-glow {
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 225, 255, 0.5), 0 0 20px rgba(0, 225, 255, 0.3);
+        }
+
+        .btn-glow:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(0, 225, 255, 0.8), 0 0 30px rgba(0, 225, 255, 0.5);
         }
         
-        .nav-arrow {
-            position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            padding: 1rem;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 1000;
-            transition: background-color 0.3s;
+        .btn-glow:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            box-shadow: none;
         }
 
-        .nav-arrow:hover {
-            background-color: rgba(255, 255, 255, 0.3);
+        .file-drop-area {
+            border: 2px dashed rgba(0, 225, 255, 0.4);
+            transition: all 0.3s ease;
         }
 
-        #prev-btn {
-            left: 2rem;
-        }
-
-        #next-btn {
-            right: 2rem;
+        .file-drop-area.dragover {
+            border-color: rgba(0, 225, 255, 1);
+            background-color: rgba(0, 225, 255, 0.05);
         }
         
-        #page-counter {
-            position: fixed;
-            bottom: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 1rem;
-            font-size: 0.9rem;
-            z-index: 1000;
+        .loader {
+            border-top-color: #00e1ff;
+            animation: spin 1s linear infinite;
         }
 
-        /* Animation for elements */
-        .fade-in-up {
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-
-        .fade-in-down {
-            animation: fadeInDown 0.8s ease-out forwards;
-        }
-
-        .fade-in {
-            animation: fadeIn 1.2s ease-out forwards;
-        }
-
-        .stagger-children > * {
-            animation: fadeInUp 0.8s ease-out forwards;
-            opacity: 0;
-        }
-        
-        .active .stagger-children > *:nth-child(1) { animation-delay: 0.2s; }
-        .active .stagger-children > *:nth-child(2) { animation-delay: 0.4s; }
-        .active .stagger-children > *:nth-child(3) { animation-delay: 0.6s; }
-        .active .stagger-children > *:nth-child(4) { animation-delay: 0.8s; }
-
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
+        @keyframes spin {
             to {
-                opacity: 1;
-                transform: translateY(0);
+                transform: rotate(360deg);
             }
         }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        
-        /* Custom styles for specific slides */
-        .comparison-table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 2rem;
-        }
-
-        .comparison-table th, .comparison-table td {
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .comparison-table th {
-            background-color: rgba(0, 122, 255, 0.2);
-            font-weight: 500;
-        }
-
-        .comparison-table td:first-child {
-            text-align: left;
-            font-weight: 500;
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        .comparison-table tr:first-child th:first-child {
-             background-color: transparent;
-        }
-
-        .highlight-col {
-            background-color: rgba(46, 204, 113, 0.15);
-        }
-
-        .timeline {
-            position: relative;
-            width: 100%;
-            padding: 2rem 0;
-        }
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateX(-50%);
-        }
-        .timeline-item {
-            position: relative;
-            width: 50%;
-            padding: 1rem 2rem;
-            margin-bottom: 2rem;
-        }
-        .timeline-item:nth-child(odd) {
-            left: 0;
-            padding-right: 4rem;
-            text-align: right;
-        }
-        .timeline-item:nth-child(even) {
-            left: 50%;
-            padding-left: 4rem;
-            text-align: left;
-        }
-        .timeline-dot {
-            content: '';
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #007aff;
-            border: 3px solid #0a0a0a;
-            z-index: 1;
-        }
-        .timeline-item:nth-child(odd) .timeline-dot {
-            right: -8px;
-        }
-        .timeline-item:nth-child(even) .timeline-dot {
-            left: -8px;
-        }
-        .timeline-date {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #007aff;
-            margin-bottom: 0.5rem;
-        }
-
     </style>
 </head>
-<body>
 
-    <!-- Slide 1: Title -->
-    <div id="slide1" class="slide active">
-        <div class="background-grid"></div>
-        <div class="slide-content text-center">
-            <h1 class="text-6xl md:text-7xl font-bold mb-4 tracking-wider fade-in-down">智绘筑</h1>
-            <p class="text-2xl md:text-3xl text-gray-300 fade-in-up">基于AI辅助的建筑设计智能协同平台</p>
-            <p class="text-lg text-gray-400 mt-12 fade-in">尹钊文 | 丁逸晗 | 洪中胜 | 林志浩 | 向晓慧</p>
-        </div>
-    </div>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- Slide 2: The Problem -->
-    <div id="slide2" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content text-center">
-            <h2 class="text-4xl font-bold mb-2 fade-in-down">传统建筑设计面临的困境</h2>
-            <p class="text-xl text-gray-400 mb-16 fade-in-down" style="animation-delay: 0.2s;">行业痛点亟待解决</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-6xl stagger-children">
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
-                    <i class="fas fa-clock text-4xl text-blue-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">设计周期长</h3>
-                    <p class="text-gray-400">人工设计15-30天，效率低下，无法满足快速建设需求。</p>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
-                    <i class="fas fa-coins text-4xl text-green-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">人力成本高</h3>
-                    <p class="text-gray-400">单套设计成本2000-5000元，严重挤压项目利润空间。</p>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
-                    <i class="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">合规性难保障</h3>
-                    <p class="text-gray-400">人工校验易出错，消防、日照等指标误差率超20%。</p>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
-                    <i class="fas fa-robot text-4xl text-purple-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">智能化渗透低</h3>
-                    <p class="text-gray-400">智能化工具应用不足5%，行业数字化转型缓慢。</p>
-                </div>
+    <div id="app" class="w-full max-w-2xl mx-auto">
+        <div class="bg-slate-900/50 backdrop-blur-sm rounded-xl p-6 md:p-8 container-glow">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <h1 class="text-3xl md:text-4xl font-bold text-cyan-300 title-font tracking-widest">时空矩阵转换器</h1>
+                <p class="text-cyan-500 mt-2 text-sm">Excel to PDF | 单行单页模式</p>
             </div>
-        </div>
-    </div>
 
-    <!-- Slide 3: Our Solution -->
-    <div id="slide3" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content text-center">
-            <h2 class="text-4xl font-bold mb-4 fade-in-down">我们的解决方案：智绘筑</h2>
-            <p class="text-xl text-gray-400 mb-16 fade-in-down" style="animation-delay: 0.2s;">AI赋能，重塑建筑设计流程</p>
-            <div class="flex items-center justify-center fade-in">
-                <div class="grid grid-cols-2 gap-8 text-right">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-blue-400">草图智能识别</h3>
-                        <p class="text-gray-400">手绘草图一键解析，精准捕捉设计意图。</p>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-green-400">合规户型生成</h3>
-                        <p class="text-gray-400">10分钟生成合规方案，误差率低于2%。</p>
-                    </div>
+            <!-- File Upload Area -->
+            <div id="file-drop-area" class="file-drop-area rounded-lg p-8 text-center cursor-pointer mb-6">
+                <input type="file" id="file-input" class="hidden" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                <div class="flex flex-col items-center">
+                    <svg class="w-12 h-12 text-cyan-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h10a4 4 0 014 4v5a4 4 0 01-4 4H7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m-3-3h6"></path></svg>
+                    <p class="text-lg">拖拽 <span class="text-cyan-300 font-semibold">.xlsx</span> 文件至此</p>
+                    <p class="text-sm text-gray-400 mt-1">或</p>
+                    <p class="mt-2 px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-md text-sm border border-cyan-500/50">点击选择文件</p>
                 </div>
-                <img src="https://placehold.co/200x200/FFFFFF/0a0a0a?text=智绘筑" alt="智绘筑 Logo" class="rounded-full w-48 h-48 mx-16 border-4 border-blue-500 shadow-lg">
-                <div class="grid grid-cols-2 gap-8 text-left">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-purple-400">BIM模型联动</h3>
-                        <p class="text-gray-400">自动生成LOD200标准BIM模型，无缝衔接下游。</p>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-yellow-400">规范智能校验</h3>
-                        <p class="text-gray-400">内置300+地市规范，实时反馈，确保合规。</p>
-                    </div>
-                </div>
+                <p id="file-name" class="mt-4 text-green-400 font-mono"></p>
             </div>
-             <div class="mt-16 text-2xl font-light text-gray-300 fade-in" style="animation-delay: 0.6s;">
-                <span class="text-green-400 font-semibold">效率提升7倍</span>  ·  <span class="text-blue-400 font-semibold">成本降低80%</span>  ·  <span class="text-yellow-400 font-semibold">合规率98%</span>
+
+            <!-- Control Button -->
+            <div class="text-center mb-6">
+                <button id="convert-btn" class="w-full md:w-1/2 bg-cyan-500 text-gray-900 font-bold py-3 px-6 rounded-lg btn-glow title-font text-lg disabled:bg-gray-600" disabled>
+                    <span id="btn-text">开始转换</span>
+                    <div id="loader" class="loader w-6 h-6 border-4 border-gray-900/20 rounded-full hidden mx-auto"></div>
+                </button>
             </div>
-        </div>
-    </div>
-    
-    <!-- Slide 4: Core Technology -->
-    <div id="slide4" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content">
-             <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">硬核技术实力</h2>
-             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl stagger-children">
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 text-center">
-                    <i class="fas fa-microchip text-4xl text-cyan-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">前沿AI算法</h3>
-                    <p class="text-gray-400">基于Stable Diffusion与ControlNet，结合自研模型，实现草图语义精准解析与高质量户型生成。</p>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 text-center">
-                    <i class="fas fa-database text-4xl text-lime-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">垂直场景数据</h3>
-                    <p class="text-gray-400">聚焦农房场景，内置100+县域建筑特征与300+地市规范，构建难以复制的数据壁垒。</p>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 text-center">
-                    <i class="fas fa-university text-4xl text-amber-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">高校科研背书</h3>
-                    <p class="text-gray-400">依托省部级重点实验室，算法研发成本降低50%，并享有学术成果转化政策优势。</p>
-                </div>
-             </div>
-        </div>
-    </div>
 
-    <!-- Slide 5: Product & Services -->
-    <div id="slide5" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content">
-            <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">产品矩阵与服务</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center stagger-children">
-                <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
-                    <img src="https://placehold.co/600x400/1a1a1a/ffffff?text=系统UI界面" alt="农房户型自动生成系统" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">农房户型自动生成系统</h3>
-                        <p class="text-gray-400">核心产品，为县域设计院提供“AI生成+人工复核”混合设计模式。</p>
-                    </div>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
-                    <img src="https://placehold.co/600x400/1a1a1a/ffffff?text=API接口示意" alt="BIM模型自动化生成模块" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">BIM模型自动化生成模块</h3>
-                        <p class="text-gray-400">增值服务，为BIM软件厂商提供嵌入式AI模块，提升其产品竞争力。</p>
-                    </div>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
-                    <img src="https://placehold.co/600x400/1a1a1a/ffffff?text=数据分析仪表盘" alt="县域建筑数据服务" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">县域建筑数据服务</h3>
-                        <p class="text-gray-400">未来规划，为政府/企业提供农房数据分析与趋势预测服务。</p>
-                    </div>
-                </div>
-            </div>
+            <!-- Status Message -->
+            <div id="status-message" class="text-center text-yellow-400 h-5 font-mono text-sm"></div>
         </div>
+        
+        <footer class="text-center mt-6 text-xs text-gray-500">
+            <p>本地处理，文件不会上传至服务器</p>
+            <p>&copy; 2025 Gemini Industries</p>
+        </footer>
     </div>
-    
-    <!-- Slide 6: Market Analysis -->
-    <div id="slide6" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content">
-             <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">蓝海市场，机遇无限</h2>
-             <div class="flex flex-col md:flex-row items-center justify-center gap-12 w-full max-w-6xl stagger-children">
-                <div class="w-full md:w-1/3 text-center">
-                    <div class="text-6xl font-bold text-blue-400">40<span class="text-4xl">亿+</span></div>
-                    <p class="text-xl mt-2">县域农房设计年市场规模</p>
-                </div>
-                <div class="w-full md:w-1/3 text-center">
-                    <div class="text-6xl font-bold text-green-400"><span class="text-4xl">&lt;</span>5<span class="text-4xl">%</span></div>
-                    <p class="text-xl mt-2">当前智能化渗透率</p>
-                </div>
-                 <div class="w-full md:w-1/3 text-center">
-                    <i class="fas fa-file-alt text-6xl text-yellow-400 mb-2"></i>
-                    <p class="text-xl mt-2">国家“乡村振兴”战略<br>政策红利</p>
-                </div>
-             </div>
-             <p class="text-center text-gray-400 mt-16 text-lg fade-in" style="animation-delay: 0.8s;">
-                根据住建部预测，2026年市场规模将达2.8亿元，年复合增长率高达110%。
-             </p>
-        </div>
-    </div>
-
-    <!-- Slide 7: Competitive Advantage -->
-    <div id="slide7" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content w-full max-w-5xl">
-            <h2 class="text-4xl font-bold mb-8 text-center fade-in-down">差异化竞争优势</h2>
-            <div class="fade-in" style="animation-delay: 0.2s;">
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>维度</th>
-                            <th class="highlight-col">本项目 (智绘筑)</th>
-                            <th>国际通用工具 (如Autodesk)</th>
-                            <th>国内综合厂商 (如广联达)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>场景聚焦</td>
-                            <td class="highlight-col">深耕农房，含100+地域特征</td>
-                            <td>通用型，缺乏中国规范适配</td>
-                            <td>城市为主，县域适配弱</td>
-                        </tr>
-                        <tr>
-                            <td>规范适配</td>
-                            <td class="highlight-col">内置300+地市规范，实时校验</td>
-                            <td>无或仅支持国标</td>
-                            <td>国标+部分地市规范</td>
-                        </tr>
-                        <tr>
-                            <td>成本优势</td>
-                            <td class="highlight-col">技术授权费5万起</td>
-                            <td>定制开发费超50万</td>
-                            <td>软件捆绑销售，价格不透明</td>
-                        </tr>
-                        <tr>
-                            <td>学术背书</td>
-                            <td class="highlight-col">高校实验室+顶会论文支撑</td>
-                            <td>市场化团队，无科研背景</td>
-                            <td>市场化团队，合作研发</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Slide 8: Business Model -->
-    <div id="slide8" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content">
-            <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">清晰的商业模式</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center stagger-children">
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
-                    <i class="fas fa-building text-4xl text-blue-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">To B: 企业客户</h3>
-                    <p class="text-gray-400">向县域设计院、中小房企、BIM软件厂商提供技术授权和SaaS订阅服务。</p>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
-                    <i class="fas fa-landmark text-4xl text-green-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">To G: 政府客户</h3>
-                    <p class="text-gray-400">参与乡村振兴、智能建造等试点项目采购，提供整体解决方案。</p>
-                </div>
-                <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
-                    <i class="fas fa-chart-line text-4xl text-purple-400 mb-4"></i>
-                    <h3 class="text-2xl font-semibold mb-2">Data Service: 数据服务</h3>
-                    <p class="text-gray-400">基于积累的行业数据，为政府和企业提供数据分析与决策支持服务。</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Slide 9: Financial Plan -->
-    <div id="slide9" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content">
-            <h2 class="text-4xl font-bold mb-12 text-center fade-in-down">融资计划与资金用途</h2>
-            <div class="flex flex-col md:flex-row items-center justify-around gap-12 w-full max-w-6xl">
-                <div class="text-center fade-in" style="animation-delay: 0.2s;">
-                    <h3 class="text-2xl font-semibold mb-4">天使轮融资需求</h3>
-                    <p class="text-7xl font-bold text-blue-400">35<span class="text-3xl ml-2">万</span></p>
-                    <p class="text-xl mt-4">出让 <span class="font-bold text-yellow-400">15%</span> 股权</p>
-                </div>
-                <div class="w-full md:w-1/2 fade-in" style="animation-delay: 0.4s;">
-                     <h3 class="text-2xl font-semibold mb-4 text-center">资金用途</h3>
-                     <div class="space-y-4">
-                        <div class="flex items-center">
-                            <span class="w-28">算法优化</span>
-                            <div class="w-full bg-gray-700 rounded-full h-6">
-                                <div class="bg-blue-500 h-6 rounded-full text-right pr-2" style="width: 40%;">40%</div>
-                            </div>
-                        </div>
-                         <div class="flex items-center">
-                            <span class="w-28">产品开发</span>
-                            <div class="w-full bg-gray-700 rounded-full h-6">
-                                <div class="bg-green-500 h-6 rounded-full text-right pr-2" style="width: 30%;">30%</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-28">试点运营</span>
-                            <div class="w-full bg-gray-700 rounded-full h-6">
-                                <div class="bg-yellow-500 h-6 rounded-full text-right pr-2" style="width: 20%;">20%</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-28">知识产权</span>
-                            <div class="w-full bg-gray-700 rounded-full h-6">
-                                <div class="bg-purple-500 h-6 rounded-full text-right pr-2" style="width: 10%;">10%</div>
-                            </div>
-                        </div>
-                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Slide 10: Future Roadmap -->
-    <div id="slide10" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content w-full max-w-5xl">
-            <h2 class="text-4xl font-bold mb-16 text-center fade-in-down">发展蓝图与里程碑</h2>
-            <div class="timeline stagger-children">
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-date">2025</div>
-                    <h3 class="text-xl font-semibold">市场切入与验证</h3>
-                    <p class="text-gray-400">完成首家技术授权合作，建立3个县域试点，形成可复制的商业模式。</p>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-date">2026</div>
-                    <h3 class="text-xl font-semibold">规模化扩张</h3>
-                    <p class="text-gray-400">推出SaaS平台，覆盖10%县域设计院，实现千万级收入，达成盈利。</p>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-date">2027</div>
-                    <h3 class="text-xl font-semibold">产品线延伸</h3>
-                    <p class="text-gray-400">拓展至中小城市商业建筑设计，并探索东南亚等海外市场。</p>
-                </div>
-                <div class="timeline-item">
-                     <div class="timeline-dot"></div>
-                     <div class="timeline-date">2028+</div>
-                     <h3 class="text-xl font-semibold">生态领导者</h3>
-                     <p class="text-gray-400">成为县域及中小城市建筑设计智能化的标准制定者与领导品牌。</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Slide 11: Thank You -->
-    <div id="slide11" class="slide">
-        <div class="background-grid"></div>
-        <div class="slide-content text-center">
-            <h2 class="text-5xl md:text-6xl font-bold mb-4 tracking-wider fade-in-down">智绘筑</h2>
-            <p class="text-2xl md:text-3xl text-gray-300 mb-12 fade-in">赋能建筑未来</p>
-            <p class="text-4xl text-gray-200 fade-in-up" style="animation-delay: 0.4s;">感谢聆听</p>
-            <p class="text-2xl text-gray-400 mt-4 fade-in-up" style="animation-delay: 0.6s;">Q & A</p>
-        </div>
-    </div>
-
-
-    <!-- Navigation -->
-    <button id="prev-btn" class="nav-arrow"><i class="fas fa-arrow-left"></i></button>
-    <button id="next-btn" class="nav-arrow"><i class="fas fa-arrow-right"></i></button>
-    <div id="page-counter">1 / 11</div>
-
 
     <script>
-        const slides = document.querySelectorAll('.slide');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const pageCounter = document.getElementById('page-counter');
-        let currentSlide = 0;
-        const totalSlides = slides.length;
+        // JS Logic starts here
+        const { jsPDF } = window.jspdf;
+        // FIX: The autoTable plugin attaches itself to the jsPDF instance's prototype.
+        // There is no need to declare a separate 'autoTable' variable.
+        // It should be called directly as `doc.autoTable(...)`.
 
-        function showSlide(index) {
-            slides.forEach((slide, i) => {
-                if (i === index) {
-                    slide.classList.add('active');
-                } else {
-                    slide.classList.remove('active');
-                }
-            });
-            pageCounter.textContent = `${index + 1} / ${totalSlides}`;
-            // Handle nav button visibility
-            prevBtn.style.display = index === 0 ? 'none' : 'block';
-            nextBtn.style.display = index === totalSlides - 1 ? 'none' : 'block';
-        }
+        const fileDropArea = document.getElementById('file-drop-area');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name');
+        const convertBtn = document.getElementById('convert-btn');
+        const btnText = document.getElementById('btn-text');
+        const loader = document.getElementById('loader');
+        const statusMessage = document.getElementById('status-message');
 
-        function nextSlide() {
-            if (currentSlide < totalSlides - 1) {
-                currentSlide++;
-                showSlide(currentSlide);
-            }
-        }
-
-        function prevSlide() {
-            if (currentSlide > 0) {
-                currentSlide--;
-                showSlide(currentSlide);
-            }
-        }
-
-        nextBtn.addEventListener('click', nextSlide);
-        prevBtn.addEventListener('click', prevSlide);
+        let excelFile = null;
         
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                nextSlide();
-            } else if (e.key === 'ArrowLeft') {
-                prevSlide();
-            }
+        // --- Event Listeners for file selection ---
+        
+        fileDropArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+        
+        // --- Drag and Drop functionality ---
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileDropArea.addEventListener(eventName, preventDefaults, false);
         });
 
-        // Initial setup
-        showSlide(currentSlide);
-    </script>
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
 
+        fileDropArea.addEventListener('dragenter', () => fileDropArea.classList.add('dragover'), false);
+        fileDropArea.addEventListener('dragleave', () => fileDropArea.classList.remove('dragover'), false);
+        fileDropArea.addEventListener('drop', (e) => {
+            fileDropArea.classList.remove('dragover');
+            handleFile(e.dataTransfer.files[0]);
+        }, false);
+        
+        // --- Core File Handling ---
+
+        function handleFile(file) {
+            if (file && (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.name.endsWith('.xlsx'))) {
+                excelFile = file;
+                fileNameDisplay.textContent = `已选择文件: ${file.name}`;
+                convertBtn.disabled = false;
+                statusMessage.textContent = '准备就绪。';
+            } else {
+                excelFile = null;
+                fileNameDisplay.textContent = '';
+                convertBtn.disabled = true;
+                statusMessage.textContent = '错误：请选择一个有效的 .xlsx 文件。';
+            }
+        }
+        
+        // --- Conversion Logic ---
+
+        convertBtn.addEventListener('click', async () => {
+            if (!excelFile) {
+                statusMessage.textContent = '请先选择一个文件。';
+                return;
+            }
+
+            // Update UI to show processing state
+            setLoading(true, '正在读取Excel...');
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (jsonData.length < 2) {
+                        throw new Error('Excel文件为空或只有标题行。');
+                    }
+
+                    const header = jsonData[0].map(cell => String(cell ?? ''));
+                    const body = jsonData.slice(1).map(row => row.map(cell => String(cell ?? '')));
+
+                    setLoading(true, '正在生成PDF...');
+                    await generatePdf(header, body, excelFile.name.replace(/\.xlsx$/i, ''));
+                    
+                } catch (error) {
+                    console.error('Conversion failed:', error);
+                    statusMessage.textContent = `转换失败: ${error.message}`;
+                    setLoading(false);
+                }
+            };
+            
+            reader.onerror = (error) => {
+                 console.error('File reading failed:', error);
+                 statusMessage.textContent = '读取文件失败。';
+                 setLoading(false);
+            };
+
+            reader.readAsArrayBuffer(excelFile);
+        });
+
+        async function generatePdf(header, body, outputFileName) {
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'pt',
+                format: 'a4'
+            });
+            
+            // NOTE: For full Chinese support, a proper CJK font file (e.g., NotoSansSC-Regular.ttf) 
+            // must be loaded into jsPDF's virtual filesystem, usually as a Base64 string. 
+            // The following line is a placeholder and will not work without loading the font data.
+            // It will fall back to a default font, and Chinese characters may not render correctly.
+            try {
+                doc.addFont('NotoSansSC-Regular.ttf', 'NotoSansSC', 'normal');
+                doc.setFont('NotoSansSC');
+            } catch (e) {
+                console.warn("Font could not be added. Chinese characters may not display correctly.", e);
+                // Fallback to a default font
+                doc.setFont("helvetica");
+            }
+
+            body.forEach((row, index) => {
+                if (index > 0) {
+                    doc.addPage();
+                }
+                
+                statusMessage.textContent = `正在处理 ${index + 1} / ${body.length} 行...`;
+                
+                // FIX: Call 'autoTable' as a method on the jsPDF instance 'doc'.
+                doc.autoTable({
+                    head: [header],
+                    body: [row],
+                    styles: {
+                        font: 'NotoSansSC', // Apply the font to the table. Will fallback if font is not loaded.
+                        fontStyle: 'normal',
+                    },
+                    headStyles: {
+                        fillColor: [10, 12, 29],
+                        textColor: [0, 225, 255]
+                    },
+                    bodyStyles: {
+                        fillColor: [23, 37, 84],
+                        textColor: [224, 224, 224]
+                    },
+                    alternateRowStyles: {
+                        fillColor: [28, 43, 98]
+                    },
+                    didDrawPage: (data) => {
+                        doc.setFontSize(9);
+                        doc.setTextColor(150);
+                        doc.text(`第 ${doc.internal.getNumberOfPages()} 页`, data.settings.margin.left, doc.internal.pageSize.getHeight() - 10);
+                    }
+                });
+            });
+
+            setLoading(true, '准备下载...');
+
+            doc.save(`${outputFileName}.pdf`);
+
+            setTimeout(() => {
+                setLoading(false);
+                statusMessage.textContent = '转换完成！已触发下载。';
+            }, 1000);
+        }
+
+        function setLoading(isLoading, message = '') {
+            if (isLoading) {
+                convertBtn.disabled = true;
+                btnText.classList.add('hidden');
+                loader.classList.remove('hidden');
+                statusMessage.textContent = message;
+            } else {
+                convertBtn.disabled = false;
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
